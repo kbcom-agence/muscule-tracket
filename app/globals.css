@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 250 20% 98%;
+    --foreground: 250 25% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 250 25% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 250 25% 10%;
+    --primary: 265 89% 62%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 265 30% 94%;
+    --secondary-foreground: 265 25% 25%;
+    --muted: 265 20% 94%;
+    --muted-foreground: 265 10% 45%;
+    --accent: 265 89% 62%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 265 20% 90%;
+    --input: 265 20% 90%;
+    --ring: 265 89% 62%;
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: 260 25% 6%;
+    --foreground: 260 10% 95%;
+    --card: 260 25% 10%;
+    --card-foreground: 260 10% 95%;
+    --popover: 260 25% 10%;
+    --popover-foreground: 260 10% 95%;
+    --primary: 265 89% 62%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 260 25% 15%;
+    --secondary-foreground: 260 10% 90%;
+    --muted: 260 25% 15%;
+    --muted-foreground: 260 10% 60%;
+    --accent: 265 89% 62%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 260 20% 18%;
+    --input: 260 20% 18%;
+    --ring: 265 89% 62%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    background: linear-gradient(135deg,
+      hsl(260, 25%, 6%) 0%,
+      hsl(265, 30%, 10%) 50%,
+      hsl(260, 25%, 6%) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  /* Animated gradient background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, hsla(265, 89%, 62%, 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, hsla(280, 89%, 50%, 0.1) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, hsla(265, 89%, 62%, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+  }
+}
+
+/* Glassmorphism utilities */
+@layer components {
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl;
+  }
+
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl rounded-2xl;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-button {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/15 active:bg-white/20;
+    transition: all 0.2s ease;
+  }
+
+  .glass-input {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 focus:border-primary/50 focus:bg-white/10;
+  }
+
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-violet-400 via-purple-400 to-fuchsia-400 bg-clip-text text-transparent;
+  }
+
+  /* Glow effects */
+  .glow {
+    box-shadow: 0 0 20px hsla(265, 89%, 62%, 0.3);
+  }
+
+  .glow-sm {
+    box-shadow: 0 0 10px hsla(265, 89%, 62%, 0.2);
+  }
+
+  /* Primary gradient button */
+  .btn-gradient {
+    @apply bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600;
+    @apply hover:from-violet-500 hover:via-purple-500 hover:to-fuchsia-500;
+    @apply shadow-lg shadow-violet-500/25;
+    transition: all 0.3s ease;
+  }
+
+  .btn-gradient:hover {
+    box-shadow: 0 10px 40px hsla(265, 89%, 62%, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-gradient:active {
+    transform: translateY(0);
+  }
+}
+
+/* Safe area padding for PWA */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  }
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsla(265, 89%, 62%, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsla(265, 89%, 62%, 0.5);
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px hsla(265, 89%, 62%, 0.3); }
+  50% { box-shadow: 0 0 30px hsla(265, 89%, 62%, 0.5); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
