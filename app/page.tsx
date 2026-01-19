@@ -1,5 +1,5 @@
 import { db, sessions, workouts } from "@/lib/db";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, isNull, and } from "drizzle-orm";
 import { SessionCard } from "@/components/SessionCard";
 import { WorkoutSummary } from "@/components/WorkoutSummary";
 import { formatDate } from "@/lib/utils";
@@ -45,8 +45,12 @@ async function getRecentWorkouts() {
 async function getTodayWorkouts() {
   try {
     const today = new Date().toISOString().split("T")[0];
+    // Only get IN-PROGRESS workouts (not completed)
     const todayWorkouts = await db.query.workouts.findMany({
-      where: eq(workouts.date, today),
+      where: and(
+        eq(workouts.date, today),
+        isNull(workouts.completedAt)
+      ),
       with: {
         sets: true,
       },

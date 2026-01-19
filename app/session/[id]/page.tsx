@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db, sessions, exercises, workouts } from "@/lib/db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, isNull } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play, Dumbbell, Zap, RefreshCw } from "lucide-react";
 
@@ -43,10 +43,12 @@ async function getLastWorkout(sessionId: string) {
 async function getTodayWorkout(sessionId: string) {
   try {
     const today = new Date().toISOString().split("T")[0];
+    // Only get IN-PROGRESS workout (not completed)
     const workout = await db.query.workouts.findFirst({
       where: and(
         eq(workouts.sessionId, sessionId),
-        eq(workouts.date, today)
+        eq(workouts.date, today),
+        isNull(workouts.completedAt)
       ),
       with: {
         sets: true,

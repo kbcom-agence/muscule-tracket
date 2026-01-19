@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, workouts } from "@/lib/db";
-import { desc, eq, and } from "drizzle-orm";
+import { desc, eq, and, isNull } from "drizzle-orm";
 
 export async function GET() {
   try {
@@ -29,11 +29,13 @@ export async function POST(request: NextRequest) {
 
     const today = new Date().toISOString().split("T")[0];
 
-    // Check if there's already a workout for this session today (resume feature)
+    // Check if there's already an IN-PROGRESS workout for this session today (resume feature)
+    // Only resume if completedAt is null (not finished)
     const existingWorkout = await db.query.workouts.findFirst({
       where: and(
         eq(workouts.sessionId, sessionId),
-        eq(workouts.date, today)
+        eq(workouts.date, today),
+        isNull(workouts.completedAt)
       ),
       with: {
         sets: true,

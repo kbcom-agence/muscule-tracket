@@ -160,6 +160,16 @@ export default function WorkoutPage() {
     }
 
     setSaving(true);
+
+    // Mark workout as completed
+    if (workoutId) {
+      await fetch(`/api/workouts/${workoutId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "complete" }),
+      });
+    }
+
     router.push(`/history/${workoutId}`);
   };
 

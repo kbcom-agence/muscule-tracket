@@ -84,3 +84,30 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     return NextResponse.json({ error: "Failed to delete workout" }, { status: 500 });
   }
 }
+
+// PATCH - Mark workout as completed
+export async function PATCH(request: NextRequest, { params }: Props) {
+  try {
+    const body = await request.json();
+    const { action } = body;
+
+    if (action === "complete") {
+      const [updated] = await db
+        .update(workouts)
+        .set({ completedAt: new Date() })
+        .where(eq(workouts.id, params.id))
+        .returning();
+
+      if (!updated) {
+        return NextResponse.json({ error: "Workout not found" }, { status: 404 });
+      }
+
+      return NextResponse.json(updated);
+    }
+
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  } catch (error) {
+    console.error("Error updating workout:", error);
+    return NextResponse.json({ error: "Failed to update workout" }, { status: 500 });
+  }
+}

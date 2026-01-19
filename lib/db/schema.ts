@@ -28,6 +28,7 @@ export const workouts = pgTable("workouts", {
     .notNull(),
   date: date("date").notNull(),
   notes: text("notes"),
+  completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
