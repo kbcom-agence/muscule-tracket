@@ -1,5 +1,5 @@
 import { db, sessions, workouts } from "@/lib/db";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { SessionCard } from "@/components/SessionCard";
 import { WorkoutSummary } from "@/components/WorkoutSummary";
 import { formatDate } from "@/lib/utils";
@@ -42,10 +42,31 @@ async function getRecentWorkouts() {
   }
 }
 
+async function getTodayWorkouts() {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    const todayWorkouts = await db.query.workouts.findMany({
+      where: eq(workouts.date, today),
+      with: {
+        sets: true,
+      },
+    });
+    // Return a map of sessionId -> workout with set count
+    const workoutMap: Record<string, { id: string; setCount: number }> = {};
+    todayWorkouts.forEach((w) => {
+      workoutMap[w.sessionId] = { id: w.id, setCount: w.sets.length };
+    });
+    return workoutMap;
+  } catch {
+    return {};
+  }
+}
+
 export default async function HomePage() {
-  const [sessionsList, recentWorkouts] = await Promise.all([
+  const [sessionsList, recentWorkouts, todayWorkouts] = await Promise.all([
     getSessions(),
     getRecentWorkouts(),
+    getTodayWorkouts(),
   ]);
 
   return (
@@ -78,24 +99,28 @@ export default async function HomePage() {
           </a>
         </div>
       ) : (
-        <section className="space-y-3 mb-8">
+        <section className="space-y-5 mb-8">
           <h2 className="text-sm font-medium text-white/40 uppercase tracking-wider mb-4 flex items-center gap-2">
             <Flame className="w-4 h-4 text-orange-400" />
             Tes séances
           </h2>
-          {sessionsList.map((session) => (
-            <SessionCard
-              key={session.id}
-              id={session.id}
-              name={session.name}
-              exerciseCount={session.exercises.length}
-              lastWorkoutDate={
-                session.workouts[0]
-                  ? formatDate(session.workouts[0].date)
-                  : undefined
-              }
-            />
-          ))}
+          {sessionsList.map((session) => {
+            const inProgress = todayWorkouts[session.id];
+            return (
+              <SessionCard
+                key={session.id}
+                id={session.id}
+                name={session.name}
+                exerciseCount={session.exercises.length}
+                lastWorkoutDate={
+                  session.workouts[0]
+                    ? formatDate(session.workouts[0].date)
+                    : undefined
+                }
+                inProgress={inProgress ? { setCount: inProgress.setCount } : undefined}
+              />
+            );
+          })}
         </section>
       )}
 

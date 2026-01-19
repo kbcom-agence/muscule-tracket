@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db, sessions, exercises, workouts } from "@/lib/db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Play, Dumbbell, Zap } from "lucide-react";
+import { ArrowLeft, Play, Dumbbell, Zap, RefreshCw } from "lucide-react";
 
 interface Props {
   params: { id: string };
@@ -40,10 +40,29 @@ async function getLastWorkout(sessionId: string) {
   }
 }
 
+async function getTodayWorkout(sessionId: string) {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    const workout = await db.query.workouts.findFirst({
+      where: and(
+        eq(workouts.sessionId, sessionId),
+        eq(workouts.date, today)
+      ),
+      with: {
+        sets: true,
+      },
+    });
+    return workout;
+  } catch {
+    return null;
+  }
+}
+
 export default async function SessionPage({ params }: Props) {
-  const [session, lastWorkout] = await Promise.all([
+  const [session, lastWorkout, todayWorkout] = await Promise.all([
     getSession(params.id),
     getLastWorkout(params.id),
+    getTodayWorkout(params.id),
   ]);
 
   if (!session) {
@@ -128,12 +147,36 @@ export default async function SessionPage({ params }: Props) {
             })}
           </section>
 
-          <Link href={`/session/${session.id}/workout`}>
-            <Button size="xl" className="w-full">
-              <Zap className="w-5 h-5 mr-2" />
-              Démarrer la séance
-            </Button>
-          </Link>
+          {todayWorkout && todayWorkout.sets.length > 0 ? (
+            <div className="space-y-3">
+              <div className="glass-card p-4 border border-emerald-500/30 bg-emerald-500/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                    <RefreshCw className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-emerald-400 font-medium">Séance en cours</p>
+                    <p className="text-sm text-white/50">
+                      {todayWorkout.sets.length} série{todayWorkout.sets.length !== 1 ? "s" : ""} enregistrée{todayWorkout.sets.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <Link href={`/session/${session.id}/workout`}>
+                <Button size="xl" className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600">
+                  <Play className="w-5 h-5 mr-2" />
+                  Reprendre la séance
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <Link href={`/session/${session.id}/workout`}>
+              <Button size="xl" className="w-full">
+                <Zap className="w-5 h-5 mr-2" />
+                Démarrer la séance
+              </Button>
+            </Link>
+          )}
         </>
       )}
     </div>
