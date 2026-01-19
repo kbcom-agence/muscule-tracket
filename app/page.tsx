@@ -5,6 +5,9 @@ import { WorkoutSummary } from "@/components/WorkoutSummary";
 import { formatDate } from "@/lib/utils";
 import { Dumbbell, Flame } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 async function getSessions() {
   try {
     const allSessions = await db.query.sessions.findMany({

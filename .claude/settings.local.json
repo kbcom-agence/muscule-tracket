@@ -5,7 +5,8 @@
       "Bash(npm run db:push:*)",
       "Bash(npm install:*)",
       "Bash(npx tsx:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(vercel:*)"
     ]
   }
 }

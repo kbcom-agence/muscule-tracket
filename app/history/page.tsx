@@ -3,6 +3,9 @@ import { desc } from "drizzle-orm";
 import { WorkoutSummary } from "@/components/WorkoutSummary";
 import { History, Calendar } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 async function getWorkouts() {
   try {
     const allWorkouts = await db.query.workouts.findMany({

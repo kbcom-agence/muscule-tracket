@@ -32,8 +32,30 @@ export function ExerciseLogger({
   onSetSave,
   onSetDelete,
 }: ExerciseLoggerProps) {
+  // Track which sets are already saved (from resume)
+  const [savedSetNumbers, setSavedSetNumbers] = useState<Set<number>>(() => {
+    return new Set(initialSets.map((s) => s.setNumber));
+  });
+
   const [sets, setSets] = useState<SetData[]>(() => {
-    if (initialSets.length > 0) return initialSets;
+    if (initialSets.length > 0) {
+      // Merge initial sets with target sets count
+      const mergedSets: SetData[] = [];
+      const maxSets = Math.max(targetSets, initialSets.length);
+      for (let i = 0; i < maxSets; i++) {
+        const existing = initialSets.find((s) => s.setNumber === i + 1);
+        if (existing) {
+          mergedSets.push(existing);
+        } else {
+          mergedSets.push({
+            setNumber: i + 1,
+            reps: lastPerf[i]?.reps || 10,
+            weight: lastPerf[i]?.weight || 20,
+          });
+        }
+      }
+      return mergedSets;
+    }
     return Array.from({ length: targetSets }, (_, i) => ({
       setNumber: i + 1,
       reps: lastPerf[i]?.reps || 10,
@@ -48,6 +70,7 @@ export function ExerciseLogger({
         s.setNumber === setNumber ? { ...s, reps, weight } : s
       )
     );
+    setSavedSetNumbers((prev) => new Set(prev).add(setNumber));
     onSetSave(exerciseId, setNumber, reps, weight);
   };
 
@@ -72,8 +95,8 @@ export function ExerciseLogger({
     ]);
   };
 
-  const completedSets = sets.filter((s) => s.reps > 0 && s.weight > 0).length;
-  const progress = (completedSets / sets.length) * 100;
+  const completedSets = savedSetNumbers.size;
+  const progress = sets.length > 0 ? (completedSets / sets.length) * 100 : 0;
 
   return (
     <div className="glass-card overflow-hidden">
@@ -132,6 +155,7 @@ export function ExerciseLogger({
             initialReps={set.reps}
             initialWeight={set.weight}
             lastPerf={lastPerf[set.setNumber - 1]}
+            isCompleted={savedSetNumbers.has(set.setNumber)}
             onSave={(reps, weight) => handleSaveSet(set.setNumber, reps, weight)}
             onDelete={sets.length > 1 ? () => handleDeleteSet(set.setNumber) : undefined}
           />

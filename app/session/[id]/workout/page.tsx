@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Check, Loader2, Trophy } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Trophy, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExerciseLogger } from "@/components/ExerciseLogger";
 
@@ -20,6 +20,7 @@ interface Session {
 }
 
 interface SetData {
+  id?: string;
   exerciseId: string;
   setNumber: number;
   reps: number;
@@ -30,6 +31,10 @@ interface LastPerf {
   [exerciseId: string]: { reps: number; weight: number }[];
 }
 
+interface ExistingSets {
+  [exerciseId: string]: SetData[];
+}
+
 export default function WorkoutPage() {
   const params = useParams();
   const router = useRouter();
@@ -38,13 +43,18 @@ export default function WorkoutPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [workoutId, setWorkoutId] = useState<string | null>(null);
   const [lastPerf, setLastPerf] = useState<LastPerf>({});
+  const [existingSets, setExistingSets] = useState<ExistingSets>({});
   const [sets, setSets] = useState<SetData[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isResuming, setIsResuming] = useState(false);
 
   useEffect(() => {
     async function loadData() {
       try {
+        setError(null);
+
         const sessionRes = await fetch(`/api/sessions/${sessionId}`);
         if (!sessionRes.ok) throw new Error("Session not found");
         const sessionData = await sessionRes.json();
@@ -61,12 +71,31 @@ export default function WorkoutPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sessionId }),
         });
-        if (workoutRes.ok) {
-          const workoutData = await workoutRes.json();
-          setWorkoutId(workoutData.id);
+
+        if (!workoutRes.ok) {
+          throw new Error("Impossible de créer/reprendre la séance");
         }
-      } catch (error) {
-        console.error("Error loading workout data:", error);
+
+        const workoutData = await workoutRes.json();
+        setWorkoutId(workoutData.id);
+
+        // Check if we're resuming an existing workout with sets
+        if (workoutData.sets && workoutData.sets.length > 0) {
+          setIsResuming(true);
+          // Group existing sets by exercise
+          const groupedSets: ExistingSets = {};
+          workoutData.sets.forEach((set: SetData) => {
+            if (!groupedSets[set.exerciseId]) {
+              groupedSets[set.exerciseId] = [];
+            }
+            groupedSets[set.exerciseId].push(set);
+          });
+          setExistingSets(groupedSets);
+          setSets(workoutData.sets);
+        }
+      } catch (err) {
+        console.error("Error loading workout data:", err);
+        setError(err instanceof Error ? err.message : "Erreur de chargement");
       } finally {
         setLoading(false);
       }
@@ -74,10 +103,16 @@ export default function WorkoutPage() {
     loadData();
   }, [sessionId]);
 
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const handleSetSave = useCallback(
     async (exerciseId: string, setNumber: number, reps: number, weight: number) => {
-      if (!workoutId) return;
+      if (!workoutId) {
+        setSaveError("Séance non initialisée. Rafraîchis la page.");
+        return;
+      }
 
+      setSaveError(null);
       const newSet: SetData = { exerciseId, setNumber, reps, weight };
       setSets((prev) => {
         const existing = prev.findIndex(
@@ -92,7 +127,7 @@ export default function WorkoutPage() {
       });
 
       try {
-        await fetch("/api/sets", {
+        const res = await fetch("/api/sets", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -103,8 +138,13 @@ export default function WorkoutPage() {
             weight,
           }),
         });
-      } catch (error) {
-        console.error("Error saving set:", error);
+
+        if (!res.ok) {
+          throw new Error("Erreur de sauvegarde");
+        }
+      } catch (err) {
+        console.error("Error saving set:", err);
+        setSaveError("Erreur lors de la sauvegarde. Réessaie.");
       }
     },
     [workoutId]
@@ -134,13 +174,23 @@ export default function WorkoutPage() {
     );
   }
 
-  if (!session) {
+  if (error || !session) {
     return (
       <div className="px-4 py-6 text-center">
-        <p className="text-white/60">Séance non trouvée</p>
-        <Link href="/" className="text-violet-400 hover:text-violet-300">
-          Retour à l accueil
-        </Link>
+        <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+        <p className="text-white/60 mb-4">{error || "Séance non trouvée"}</p>
+        <div className="flex gap-3 justify-center">
+          <Button
+            variant="outline"
+            onClick={() => window.location.reload()}
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Réessayer
+          </Button>
+          <Link href="/" className="text-violet-400 hover:text-violet-300 flex items-center">
+            Retour à l accueil
+          </Link>
+        </div>
       </div>
     );
   }
@@ -160,6 +210,22 @@ export default function WorkoutPage() {
           Annuler
         </Link>
         <h1 className="text-2xl font-bold text-white">{session.name}</h1>
+
+        {/* Resuming banner */}
+        {isResuming && (
+          <div className="mt-3 flex items-center gap-2 text-sm text-emerald-400 bg-emerald-500/10 px-3 py-2 rounded-lg border border-emerald-500/20">
+            <RefreshCw className="w-4 h-4" />
+            Séance en cours reprise
+          </div>
+        )}
+
+        {/* Save error banner */}
+        {saveError && (
+          <div className="mt-3 flex items-center gap-2 text-sm text-red-400 bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/20">
+            <AlertCircle className="w-4 h-4" />
+            {saveError}
+          </div>
+        )}
 
         {/* Progress */}
         <div className="mt-4 glass-card p-4">
@@ -184,6 +250,7 @@ export default function WorkoutPage() {
             exerciseName={exercise.name}
             targetSets={exercise.targetSets}
             lastPerf={lastPerf[exercise.id]}
+            initialSets={existingSets[exercise.id]}
             onSetSave={handleSetSave}
           />
         ))}

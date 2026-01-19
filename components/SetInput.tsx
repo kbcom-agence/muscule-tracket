@@ -51,109 +51,118 @@ export function SetInput({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 p-3 rounded-xl transition-all duration-300",
+        "p-3 rounded-xl transition-all duration-300",
         saved
           ? "bg-gradient-to-r from-violet-600/20 to-purple-600/10 border border-violet-500/30"
           : "bg-white/5 border border-white/10"
       )}
     >
-      {/* Set number */}
-      <div className={cn(
-        "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold",
-        saved
-          ? "bg-violet-500/30 text-violet-300"
-          : "bg-white/10 text-white/50"
-      )}>
-        {setNumber}
+      {/* Top row: Set number + inputs */}
+      <div className="flex items-center gap-3">
+        {/* Set number */}
+        <div className={cn(
+          "w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0",
+          saved
+            ? "bg-violet-500/30 text-violet-300"
+            : "bg-white/10 text-white/50"
+        )}>
+          {setNumber}
+        </div>
+
+        {/* Reps input */}
+        <div className="flex-1">
+          <label className="text-[10px] text-white/40 uppercase tracking-wider mb-1 block">Reps</label>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-lg"
+              onClick={() => adjustValue("reps", -1)}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <input
+              type="number"
+              value={reps}
+              onChange={(e) => {
+                setReps(parseInt(e.target.value) || 0);
+                setSaved(false);
+              }}
+              className="w-14 text-center h-10 bg-white/10 border border-white/10 rounded-lg text-white font-semibold focus:outline-none focus:border-violet-500/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-lg"
+              onClick={() => adjustValue("reps", 1)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Weight input */}
+        <div className="flex-1">
+          <label className="text-[10px] text-white/40 uppercase tracking-wider mb-1 block">Kg</label>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-lg"
+              onClick={() => adjustValue("weight", -2.5)}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <input
+              type="number"
+              value={weight}
+              onChange={(e) => {
+                setWeight(parseFloat(e.target.value) || 0);
+                setSaved(false);
+              }}
+              className="w-14 text-center h-10 bg-white/10 border border-white/10 rounded-lg text-white font-semibold focus:outline-none focus:border-violet-500/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              step="0.5"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-lg"
+              onClick={() => adjustValue("weight", 2.5)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </div>
 
-      {/* Reps input */}
-      <div className="flex items-center gap-1">
+      {/* Bottom row: Save button (full width) */}
+      <div className="flex gap-2 mt-3">
         <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 rounded-lg"
-          onClick={() => adjustValue("reps", -1)}
+          variant={saved ? "secondary" : "default"}
+          className={cn(
+            "flex-1 h-11 rounded-xl font-semibold",
+            saved
+              ? "bg-violet-500/30 hover:bg-violet-500/40 text-violet-300"
+              : "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500"
+          )}
+          onClick={handleSave}
         >
-          <Minus className="h-4 w-4" />
+          <Check className="h-5 w-5 mr-2" />
+          {saved ? "Validé" : "Valider"}
         </Button>
-        <input
-          type="number"
-          value={reps}
-          onChange={(e) => {
-            setReps(parseInt(e.target.value) || 0);
-            setSaved(false);
-          }}
-          className="w-12 text-center h-9 bg-white/10 border border-white/10 rounded-lg text-white font-semibold focus:outline-none focus:border-violet-500/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-        />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 rounded-lg"
-          onClick={() => adjustValue("reps", 1)}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
 
-      <span className="text-white/40 text-sm">x</span>
-
-      {/* Weight input */}
-      <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 rounded-lg"
-          onClick={() => adjustValue("weight", -2.5)}
-        >
-          <Minus className="h-4 w-4" />
-        </Button>
-        <input
-          type="number"
-          value={weight}
-          onChange={(e) => {
-            setWeight(parseFloat(e.target.value) || 0);
-            setSaved(false);
-          }}
-          className="w-14 text-center h-9 bg-white/10 border border-white/10 rounded-lg text-white font-semibold focus:outline-none focus:border-violet-500/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-          step="0.5"
-        />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 rounded-lg"
-          onClick={() => adjustValue("weight", 2.5)}
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <span className="text-white/40 text-xs">kg</span>
-
-      {/* Save button */}
-      <Button
-        variant={saved ? "secondary" : "default"}
-        size="icon"
-        className={cn(
-          "h-9 w-9 rounded-lg ml-auto",
-          saved && "bg-violet-500/30 hover:bg-violet-500/40"
+        {/* Delete button */}
+        {onDelete && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-11 w-11 rounded-xl text-red-400 hover:text-red-300 hover:bg-red-500/20 shrink-0"
+            onClick={onDelete}
+          >
+            <Trash2 className="h-5 w-5" />
+          </Button>
         )}
-        onClick={handleSave}
-      >
-        <Check className={cn("h-4 w-4", saved && "text-violet-300")} />
-      </Button>
-
-      {/* Delete button */}
-      {onDelete && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/20"
-          onClick={onDelete}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      )}
+      </div>
     </div>
   );
 }
