@@ -30,8 +30,8 @@ export function SetInput({
   const defaultReps = initialReps || lastPerf?.reps || 10;
   const defaultWeight = initialWeight || lastPerf?.weight || 20;
 
-  const [reps, setReps] = useState(defaultReps);
-  const [weight, setWeight] = useState(defaultWeight);
+  const [reps, setReps] = useState<number | "">(defaultReps);
+  const [weight, setWeight] = useState<number | "">(defaultWeight);
   const [saved, setSaved] = useState(isCompleted);
   const [editingField, setEditingField] = useState<"reps" | "weight" | null>(null);
 
@@ -39,7 +39,11 @@ export function SetInput({
   const weightInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
-    onSave(reps, weight);
+    const finalReps = reps === "" ? defaultReps : reps;
+    const finalWeight = weight === "" ? defaultWeight : weight;
+    setReps(finalReps);
+    setWeight(finalWeight);
+    onSave(finalReps, finalWeight);
     setSaved(true);
     setEditingField(null);
     if (navigator.vibrate) {
@@ -67,7 +71,10 @@ export function SetInput({
   };
 
   const adjustWeight = (delta: number) => {
-    setWeight((prev) => Math.max(0, Math.round((prev + delta) * 2) / 2));
+    setWeight((prev) => {
+      const current = prev === "" ? defaultWeight : prev;
+      return Math.max(0, Math.round((current + delta) * 2) / 2);
+    });
     setSaved(false);
   };
 
@@ -147,7 +154,8 @@ export function SetInput({
             inputMode="numeric"
             value={editingField === "reps" ? reps : reps}
             onChange={(e) => {
-              setReps(parseInt(e.target.value) || 0);
+              const val = e.target.value;
+              setReps(val === "" ? "" : parseInt(val) || 0);
             }}
             onFocus={() => setEditingField("reps")}
             onBlur={() => setEditingField(null)}
@@ -185,7 +193,8 @@ export function SetInput({
             inputMode="decimal"
             value={editingField === "weight" ? weight : weight}
             onChange={(e) => {
-              setWeight(parseFloat(e.target.value) || 0);
+              const val = e.target.value;
+              setWeight(val === "" ? "" : parseFloat(val) || 0);
             }}
             onFocus={() => setEditingField("weight")}
             onBlur={() => setEditingField(null)}
