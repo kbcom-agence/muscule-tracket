@@ -124,9 +124,9 @@ export function SetInput({
           <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-sm font-bold text-white/50">
             {setNumber}
           </div>
-          {lastPerf && (
-            <span className="text-xs text-violet-400 bg-violet-500/20 px-2 py-1 rounded-full">
-              Dernier: {lastPerf.reps}×{lastPerf.weight}kg
+          {lastPerf && lastPerf.weight > 0 && (
+            <span className="text-xs text-amber-400 bg-amber-500/20 px-2 py-1 rounded-full">
+              🏆 Record: {lastPerf.reps}×{lastPerf.weight}kg
             </span>
           )}
         </div>

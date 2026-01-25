@@ -117,9 +117,9 @@ export function ExerciseLogger({
               <span className="text-sm text-white/60">
                 {completedSets} / {sets.length} séries
               </span>
-              {lastPerf.length > 0 && (
-                <span className="text-xs text-violet-400 bg-violet-500/20 px-2 py-0.5 rounded-full">
-                  Dernier: {lastPerf[0]?.weight}kg
+              {lastPerf.length > 0 && lastPerf[0]?.weight > 0 && (
+                <span className="text-xs text-amber-400 bg-amber-500/20 px-2 py-0.5 rounded-full">
+                  🏆 Record: {Math.max(...lastPerf.map(p => p?.weight || 0))}kg
                 </span>
               )}
             </div>
